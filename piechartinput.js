@@ -162,7 +162,6 @@ class pieInput extends HTMLElement {
                 if (newPercents) {
                     this.angles = newAngles;
                     this.percents = newPercents.slice();
-                    console.log(this.percents);
                     this.setAttribute('values', String(this.percents));
                 }
             }
