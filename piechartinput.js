@@ -21,8 +21,12 @@ class pieInput extends HTMLElement {
         this.canvas.setAttribute('class', 'pie-input-canvas');
         this.shadow.appendChild(this.canvas);
 
-        if (this.hasAttribute('values')){
+        // get all attributes from the declaration or set defaults
+        if (this.hasAttribute('values')) {
             this.percents = this.getAttribute('values').split(',').map(Number);
+            // check that percents sum to 1
+            let valid = this.percents.reduce((a, b) => a + b, 0) === 1;
+            if (!valid) console.error('pie chart input: percent array must sum to 1');
         } else {
             this.percents = [.5, .5];
         }
@@ -45,6 +49,11 @@ class pieInput extends HTMLElement {
         this.center = this.canvas.width / 2;
         this.radius = this.center - 10;
         this.handleRad = .04 * this.radius;
+        this.mouseOver = new Array(this.percents.length).fill(false);
+        this.grab = new Array(this.percents.length).fill(false);
+        this.globalGrab = false;
+
+        // initialize angles from input percents ("values" attribute)
         this.angles = [];
         let oldAngle = this.initialAngle;
         for (let i = 0; i < this.percents.length; i++) {
@@ -52,13 +61,6 @@ class pieInput extends HTMLElement {
             this.angles.push(angle);
             oldAngle = angle;
         }
-        this.mouseOver = new Array(this.percents.length).fill(false);
-        this.grab = new Array(this.percents.length).fill(false);
-        this.globalGrab = false;
-
-        // check that percents sum to 1
-        let valid = this.percents.reduce((a, b) => a + b, 0) === 1;
-        if (!valid) console.error('pie chart input: percent array must sum to 1');
 
         // listeners
         window.addEventListener('mousemove',
@@ -84,6 +86,8 @@ class pieInput extends HTMLElement {
         this.animate();
     }
 
+    // gets the angle of the mouse's position relative to center
+    // used for setting new angles when dragging
     getMouseAngle() {
         let r = distance(mouse.x, mouse.y, this.center, this.center);
         let relativeMouseX = (mouse.x - this.center) / r;
@@ -95,22 +99,31 @@ class pieInput extends HTMLElement {
         return (mouseAngle);
     };
 
+    // calculate xy position from a given angle in radians
     getPosFromAngle(angle) {
         let xPos = this.center + this.radius * Math.cos(angle);
         let yPos = this.center - this.radius * Math.sin(angle);
         return ({ x: xPos, y: yPos });
     }
 
-    getPercentsFromAngles(newAngles) {
+    // calculate percents array from an array of angles
+    getPercentsFromAngles(angles) {
         let newPercents = [];
-        for (let j = 0; j < newAngles.length - 1; j++) {
-            let newA = (newAngles[j + 1] - newAngles[j]);
+        // push n-1 percents from angles array
+        for (let i = 0; i < angles.length - 1; i++) {
+            let newA = (angles[i + 1] - angles[i]);
             if (newA < 0) newA += pi2;
             newPercents.push(newA / pi2);
         }
+
+        // calculate last percent by subtracting the total from 1
+        // this ensures that the percents always sum to 1
         let sum = newPercents.reduce((a, b) => a + b, 0);
         newPercents.push(1 - sum);
         newPercents = newPercents.map(x => Math.round(x * 100) / 100);
+
+        // do not return if any percent is negative
+        // this prevents pie sections from overlapping
         let valid = true;
         newPercents.forEach(x => x < 0 ? valid = false : null);
         if (valid) {
@@ -123,7 +136,7 @@ class pieInput extends HTMLElement {
         if (!mouse.down) this.grab = new Array(this.grab.length).fill(false);
 
         for (let i = 0; i < this.angles.length; i++) {
-            // draw line for each percent
+            // draw radial line for each percent
             this.ctx.beginPath();
             this.ctx.moveTo(this.center, this.center);
             let linePos = this.getPosFromAngle(this.angles[i]);
@@ -135,7 +148,7 @@ class pieInput extends HTMLElement {
             this.ctx.arc(linePos.x, linePos.y, this.handleRad, 0, pi2);
             this.ctx.fill();
 
-            // check for mouse over each handle
+            // check for mouse over the handle
             let d = distance(mouse.x, mouse.y, linePos.x, linePos.y);
             if (d < 6) {
                 this.mouseOver[i] = true;
@@ -156,6 +169,7 @@ class pieInput extends HTMLElement {
                 }
             }
 
+            // grab and move line, recalculate angles and percents
             if (this.grab[i]) {
                 let newAngles = this.angles.slice();
                 newAngles[i] = this.getMouseAngle();
@@ -183,4 +197,5 @@ class pieInput extends HTMLElement {
     }
 };
 
+// register custom element
 customElements.define('pie-input', pieInput);
