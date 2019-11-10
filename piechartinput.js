@@ -90,6 +90,8 @@ class pieInput extends HTMLElement {
         let relativeMouseY = (-mouse.y + this.center) / r;
         let mouseAngle = Math.atan2(relativeMouseY, relativeMouseX);
         if (mouseAngle < 0) mouseAngle += pi2;
+        // round to nearest percent
+        mouseAngle = (pi2 / 100) * Math.round(mouseAngle / (pi2 / 100));
         return (mouseAngle);
     };
 
