@@ -1,4 +1,5 @@
-![image](https://user-images.githubusercontent.com/26948028/75598990-40e2f080-5a66-11ea-92fd-6342f2b03af3.png)
+![image](https://user-images.githubusercontent.com/26948028/75599283-0d559580-5a69-11ea-999b-cb561260c942.png)
+
 
 # Pie Chart Input
 Custom HTML Element for selecting percentages.
