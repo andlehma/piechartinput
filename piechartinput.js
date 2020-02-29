@@ -19,13 +19,8 @@ class pieInput extends HTMLElement {
         this.shadow = this.attachShadow({ mode: 'open' });
         this.canvas = document.createElement('canvas');
         this.canvas.setAttribute('class', 'pie-input-canvas');
-        this.shadow.appendChild(this.canvas);
-
-        // initialize variables
         this.ctx = this.canvas.getContext('2d');
-        this.ctx.lineWidth = 2;
-        this.center = this.canvas.width / 2;
-        this.radius = this.center - 10;
+        this.shadow.appendChild(this.canvas);
 
         // get all attributes from the declaration or set defaults
         if (this.hasAttribute('values')) {
@@ -42,6 +37,9 @@ class pieInput extends HTMLElement {
         } else {
             this.canvas.width = this.canvas.height = 300;
         }
+        // initialize size of circle
+        this.center = this.canvas.width / 2;
+        this.radius = this.center - 10;
 
         if (this.hasAttribute('initial-angle')) {
             this.initialAngle = parseInt(this.getAttribute('initial-angle'));
