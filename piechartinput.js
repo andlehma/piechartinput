@@ -23,8 +23,8 @@ class pieInput extends HTMLElement {
         this.shadow.appendChild(this.canvas);
 
         // get all attributes from the declaration or set defaults
-        if (this.hasAttribute('values')) {
-            this.percents = this.getAttribute('values').split(',').map(Number);
+        if (this.hasAttribute('value')) {
+            this.percents = this.getAttribute('value').split(',').map(Number);
             // check that percents sum to 1
             let valid = this.percents.reduce((a, b) => a + b, 0) === 1;
             if (!valid) console.error('pie chart input: percent array must sum to 1');
@@ -65,12 +65,20 @@ class pieInput extends HTMLElement {
             this.handleRad = .04 * this.radius;
         }
 
+        if (this.hasAttribute('onchange')) {
+            let fnString = this.getAttribute('onchange');
+            let fn = window[fnString];
+            if (typeof(fn) === "function") this.onChange = fn;
+        } else {
+            this.onChange = function(){null}
+        }
+
         // initialize variables for handling click & drag
         this.mouseOver = new Array(this.percents.length).fill(false);
         this.grab = new Array(this.percents.length).fill(false);
         this.globalGrab = false;
 
-        // initialize angles from input percents ("values" attribute)
+        // initialize angles from input percents ("value" attribute)
         this.angles = [];
         let oldAngle = this.initialAngle;
         for (let i = 0; i < this.percents.length; i++) {
@@ -89,6 +97,7 @@ class pieInput extends HTMLElement {
 
         // init
         this.animate();
+        this.onChange(this.percents);
     }
 
     // handle the various event listeners set up in constructor()
@@ -219,7 +228,7 @@ class pieInput extends HTMLElement {
                 if (newPercents) {
                     this.angles = newAngles;
                     this.percents = newPercents.slice();
-                    this.setAttribute('values', String(this.percents));
+                    this.setAttribute('value', String(this.percents));
                 }
             }
         }
@@ -228,7 +237,15 @@ class pieInput extends HTMLElement {
     animate() {
         requestAnimationFrame(this.animate);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // update and check for changes
+        let oldAngles = this.angles;
         this.update();
+        let newAngles = this.angles;
+        let changed = JSON.stringify(oldAngles) !== JSON.stringify(newAngles);
+        if (changed) {
+            this.onChange(this.percents);
+        }
 
         // draw outline circle
         this.ctx.beginPath();
