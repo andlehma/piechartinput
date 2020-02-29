@@ -216,7 +216,6 @@ class pieInput extends HTMLElement {
                 // weird visual errors occur with angles of exactly 0 or exactly tau
                 // fudge it by adding a tiny amount to any angle of exactly 0
                 if (newAngles[i] === 0) newAngles[i] = tau + .0001;
-                console.log(newAngles);
 
                 let newPercents = this.getPercentsFromAngles(newAngles);
                 if (newPercents) {
