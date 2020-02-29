@@ -43,6 +43,12 @@ class pieInput extends HTMLElement {
             this.initialAngle = 0;
         }
 
+        if (this.hasAttribute('colors')) {
+            this.colors = this.getAttribute('colors').split(',');
+        } else {
+            this.colors = new Array(this.percents.length).fill('white');
+        }
+
         // initialize variables
         this.ctx = this.canvas.getContext('2d');
         this.ctx.lineWidth = 2;
@@ -140,6 +146,19 @@ class pieInput extends HTMLElement {
         // release all on mouseup
         if (!mouse.down) this.grab = new Array(this.grab.length).fill(false);
 
+        // separate loop ensures colors are drawn underneath everything else
+        for (let i = 0; i < this.angles.length; i++) {
+            // draw colors
+            let currAngle = (-this.angles[i]) % pi2;
+            let nextAngle = (-this.angles[i + 1]) % pi2 || (-this.angles[0]) % pi2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.center, this.center);
+            this.ctx.arc(this.center, this.center, this.radius, currAngle, nextAngle, true);
+            this.ctx.moveTo(this.center, this.center);
+            this.ctx.fillStyle = this.colors[i];
+            this.ctx.fill();
+        }
+
         for (let i = 0; i < this.angles.length; i++) {
             // draw radial line for each percent
             this.ctx.beginPath();
@@ -151,6 +170,7 @@ class pieInput extends HTMLElement {
             // draw handle
             this.ctx.beginPath();
             this.ctx.arc(linePos.x, linePos.y, this.handleRad, 0, pi2);
+            this.ctx.fillStyle = 'black';
             this.ctx.fill();
 
             // check for mouse over the handle
