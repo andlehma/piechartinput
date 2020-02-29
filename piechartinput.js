@@ -63,27 +63,32 @@ class pieInput extends HTMLElement {
         }
 
         // listeners
-        window.addEventListener('mousemove',
-            function (event) {
-                mouse.x = event.clientX;
-                mouse.y = event.clientY;
-            });
-
-        window.addEventListener('mousedown',
-            function () {
-                mouse.down = true;
-            });
-
-        window.addEventListener('mouseup',
-            function () {
-                mouse.down = false;
-            });
+        window.addEventListener('mousemove', this);
+        window.addEventListener('mousedown', this);
+        window.addEventListener('mouseup', this);
 
         // bind
         this.animate = this.animate.bind(this);
 
         // init
         this.animate();
+    }
+
+    // handle the various event listeners set up in constructor()
+    handleEvent(event) {
+        switch (event.type) {
+            case "mousemove":
+                let rect = this.canvas.getBoundingClientRect();
+                mouse.x = event.clientX - rect.left;
+                mouse.y = event.clientY - rect.top;
+                break;
+            case "mousedown":
+                mouse.down = true;
+                break;
+            case "mouseup":
+                mouse.down = false;
+                break;
+        }
     }
 
     // gets the angle of the mouse's position relative to center
