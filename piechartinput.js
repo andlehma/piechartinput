@@ -1,5 +1,5 @@
 const pi = Math.PI;
-const pi2 = pi * 2;
+const tau = pi * 2;
 const mouse = {
     x: innerWidth / 2,
     y: innerHeight / 2
@@ -76,7 +76,7 @@ class pieInput extends HTMLElement {
         this.angles = [];
         let oldAngle = this.initialAngle;
         for (let i = 0; i < this.percents.length; i++) {
-            let angle = (this.percents[i] * pi2) + oldAngle;
+            let angle = (this.percents[i] * tau) + oldAngle;
             this.angles.push(angle);
             oldAngle = angle;
         }
@@ -117,9 +117,9 @@ class pieInput extends HTMLElement {
         let relativeMouseX = (mouse.x - this.center) / r;
         let relativeMouseY = (-mouse.y + this.center) / r;
         let mouseAngle = Math.atan2(relativeMouseY, relativeMouseX);
-        if (mouseAngle < 0) mouseAngle += pi2;
+        if (mouseAngle < 0) mouseAngle += tau;
         // round to nearest percent
-        mouseAngle = (pi2 / 100) * Math.round(mouseAngle / (pi2 / 100));
+        mouseAngle = (tau / 100) * Math.round(mouseAngle / (tau / 100));
         return (mouseAngle);
     };
 
@@ -136,8 +136,8 @@ class pieInput extends HTMLElement {
         // push n-1 percents from angles array
         for (let i = 0; i < angles.length - 1; i++) {
             let newA = (angles[i + 1] - angles[i]);
-            if (newA < 0) newA += pi2;
-            newPercents.push(newA / pi2);
+            if (newA < 0) newA += tau;
+            newPercents.push(newA / tau);
         }
 
         // calculate last percent by subtracting the total from 1
@@ -162,8 +162,8 @@ class pieInput extends HTMLElement {
         // separate loop ensures colors are drawn underneath everything else
         for (let i = 0; i < this.angles.length; i++) {
             // draw colors
-            let currAngle = (-this.angles[i]) % pi2;
-            let nextAngle = (-this.angles[i + 1]) % pi2 || (-this.angles[0]) % pi2;
+            let currAngle = (-this.angles[i]) % tau;
+            let nextAngle = (-this.angles[i + 1]) % tau || (-this.angles[0]) % tau;
             this.ctx.beginPath();
             this.ctx.moveTo(this.center, this.center);
             this.ctx.arc(this.center, this.center, this.radius, currAngle, nextAngle, true);
@@ -183,7 +183,7 @@ class pieInput extends HTMLElement {
 
             // draw handle
             this.ctx.beginPath();
-            this.ctx.arc(linePos.x, linePos.y, this.handleRad, 0, pi2);
+            this.ctx.arc(linePos.x, linePos.y, this.handleRad, 0, tau);
             this.ctx.fillStyle = 'black';
             this.ctx.fill();
 
@@ -230,13 +230,13 @@ class pieInput extends HTMLElement {
 
         // draw outline circle
         this.ctx.beginPath();
-        this.ctx.arc(this.center, this.center, this.radius, 0, pi2);
+        this.ctx.arc(this.center, this.center, this.radius, 0, tau);
         this.ctx.stroke();
 
         // draw center circle
         // this avoids visual errors with thicker lines
         this.ctx.beginPath()
-        this.ctx.arc(this.center, this.center, this.lineThickness / 2, 0, pi2);
+        this.ctx.arc(this.center, this.center, this.lineThickness / 2, 0, tau);
         this.ctx.fillStyle = 'black';
         this.ctx.fill();
 
