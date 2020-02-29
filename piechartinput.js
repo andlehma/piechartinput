@@ -21,6 +21,12 @@ class pieInput extends HTMLElement {
         this.canvas.setAttribute('class', 'pie-input-canvas');
         this.shadow.appendChild(this.canvas);
 
+        // initialize variables
+        this.ctx = this.canvas.getContext('2d');
+        this.ctx.lineWidth = 2;
+        this.center = this.canvas.width / 2;
+        this.radius = this.center - 10;
+
         // get all attributes from the declaration or set defaults
         if (this.hasAttribute('values')) {
             this.percents = this.getAttribute('values').split(',').map(Number);
@@ -43,12 +49,25 @@ class pieInput extends HTMLElement {
             this.initialAngle = 0;
         }
 
-        // initialize variables
-        this.ctx = this.canvas.getContext('2d');
-        this.ctx.lineWidth = 2;
-        this.center = this.canvas.width / 2;
-        this.radius = this.center - 10;
-        this.handleRad = .04 * this.radius;
+        if (this.hasAttribute('colors')) {
+            this.colors = this.getAttribute('colors').split(',');
+        } else {
+            this.colors = new Array(this.percents.length).fill('white');
+        }
+
+        if (this.hasAttribute('line-thickness')) {
+            this.lineThickness = parseInt(this.getAttribute('line-thickness'));
+        } else {
+            this.lineThickness = 2;
+        }
+
+        if (this.hasAttribute('handle-radius')) {
+            this.handleRad = parseInt(this.getAttribute('handle-radius'));
+        } else {
+            this.handleRad = .04 * this.radius;
+        }
+
+        // initialize variables for handling click & drag
         this.mouseOver = new Array(this.percents.length).fill(false);
         this.grab = new Array(this.percents.length).fill(false);
         this.globalGrab = false;
@@ -140,22 +159,37 @@ class pieInput extends HTMLElement {
         // release all on mouseup
         if (!mouse.down) this.grab = new Array(this.grab.length).fill(false);
 
+        // separate loop ensures colors are drawn underneath everything else
+        for (let i = 0; i < this.angles.length; i++) {
+            // draw colors
+            let currAngle = (-this.angles[i]) % pi2;
+            let nextAngle = (-this.angles[i + 1]) % pi2 || (-this.angles[0]) % pi2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.center, this.center);
+            this.ctx.arc(this.center, this.center, this.radius, currAngle, nextAngle, true);
+            this.ctx.moveTo(this.center, this.center);
+            this.ctx.fillStyle = this.colors[i];
+            this.ctx.fill();
+        }
+
         for (let i = 0; i < this.angles.length; i++) {
             // draw radial line for each percent
             this.ctx.beginPath();
             this.ctx.moveTo(this.center, this.center);
             let linePos = this.getPosFromAngle(this.angles[i]);
             this.ctx.lineTo(linePos.x, linePos.y);
+            this.ctx.lineWidth = this.lineThickness;
             this.ctx.stroke();
 
             // draw handle
             this.ctx.beginPath();
             this.ctx.arc(linePos.x, linePos.y, this.handleRad, 0, pi2);
+            this.ctx.fillStyle = 'black';
             this.ctx.fill();
 
             // check for mouse over the handle
             let d = distance(mouse.x, mouse.y, linePos.x, linePos.y);
-            if (d < 6) {
+            if (d < this.handleRad) {
                 this.mouseOver[i] = true;
             } else {
                 this.mouseOver[i] = false;
@@ -192,13 +226,20 @@ class pieInput extends HTMLElement {
     animate() {
         requestAnimationFrame(this.animate);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.update();
 
         // draw outline circle
         this.ctx.beginPath();
         this.ctx.arc(this.center, this.center, this.radius, 0, pi2);
         this.ctx.stroke();
 
-        this.update();
+        // draw center circle
+        // this avoids visual errors with thicker lines
+        this.ctx.beginPath()
+        this.ctx.arc(this.center, this.center, this.lineThickness / 2, 0, pi2);
+        this.ctx.fillStyle = 'black';
+        this.ctx.fill();
+
     }
 };
 
